@@ -56,4 +56,4 @@ Blue Marble, Black Marble, and the GIBS layers are NASA imagery. three.js draws 
 
 ## Pages
 
-Pushes to `main` build and deploy with GitHub Actions. The workflow is `.github/workflows/pages.yml`.
+Pushes to `main` build and deploy with GitHub Actions (`.github/workflows/pages.yml`). In the repository’s Pages settings, the source has to be GitHub Actions. The build already passes; the deploy publishes once that source is selected.
