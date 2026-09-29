@@ -18,8 +18,6 @@ import {
   anglesApart,
   formatCoordinates,
   formatElevation,
-  formatFetched,
-  formatObservation,
   formatSolarClock,
   formatWhen,
 } from './format.js';
@@ -45,9 +43,6 @@ const hudSun = document.querySelector('#hud-sun');
 const hudName = document.querySelector('#hud-name');
 const hudCoords = document.querySelector('#hud-coords');
 const hudFix = document.querySelector('#hud-fix');
-const hudClouds = document.querySelector('#hud-clouds');
-const hudUpdated = document.querySelector('#hud-updated');
-const hudCredits = document.querySelector('#hud-credits');
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clock = createClock(window.location.search);
@@ -105,9 +100,10 @@ function resize() {
   if (!globe) return;
   globe.resize(window.innerWidth, window.innerHeight, pixelRatio());
   const aspect = globe.camera.aspect;
-  state.focusFov = fovForDisc(focusRadius, aspect, aspect < 1 ? 0.94 : 0.97);
+  // Frame the atmosphere shell (1.06), not just the planet, with headroom for the HUD.
+  state.focusFov = fovForDisc(focusRadius, aspect, aspect < 1 ? 0.9 : 0.88, 1.06);
   if (state.mode === 'intro') {
-    const fill = aspect < 1 ? 0.78 : 0.7;
+    const fill = aspect < 1 ? 0.72 : 0.6;
     state.radius = framingDistance(state.fov, aspect, fill);
   } else if (state.mode === 'settled') {
     state.fov = state.focusFov;
@@ -162,20 +158,6 @@ function updateHud() {
   hudName.textContent = place.city || 'Your position';
   hudCoords.textContent = formatCoordinates(place.lat, place.lon);
   hudFix.textContent = fixLine(place);
-  const imagery = state.imagery;
-  if (imagery.cloudMode === 'loading') {
-    hudClouds.textContent = 'Clouds loading…';
-    hudUpdated.textContent = '';
-  } else if (imagery.cloudMode === 'static') {
-    hudClouds.textContent = imagery.note;
-    hudUpdated.textContent = imagery.updated ? `Checked ${formatFetched(imagery.updated)}` : '';
-  } else {
-    const observed = formatObservation(imagery.dates);
-    const names = imagery.layers.join(' & ') || 'VIIRS';
-    hudClouds.textContent = `Clouds: NASA GIBS ${names}, ${observed} (latest daylight pass)`;
-    hudUpdated.textContent = imagery.updated ? `Fetched ${formatFetched(imagery.updated)}` : '';
-  }
-  hudCredits.textContent = 'Day: NASA Blue Marble · Night: NASA Black Marble 2016';
 }
 
 function updateLabel() {
@@ -393,6 +375,10 @@ function publishOrbit() {
     get cloudLevel() { return state.imagery.cloudLevel || 0; },
     get place() { return state.place; },
     get elevation() { return state.elevation; },
+    get cloudSize() {
+      const image = globe?.cloudMat.uniforms.cloudMap.value.image;
+      return image ? [image.width, image.height] : null;
+    },
     sunElevation() {
       if (!state.place || state.place.lat == null) return null;
       return sunElevation(clock(), state.place.lat, state.place.lon);

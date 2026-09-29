@@ -17,11 +17,11 @@ The pictures above were taken with the clock held at 29 September 2026, 04:30 UT
 ## What you see
 
 - A slowly rotating Earth, a black starfield, and a thin atmosphere.
-- A glossy Start button in the spirit of the original iPhone.
+- A minimal, glass-and-light mission-control interface.
 - The real subsolar point for the current UTC time, using the Jean Meeus formulas from the [NOAA Solar Calculator](https://gml.noaa.gov/grad/solcalc/). Day imagery blends into night city lights across a soft twilight band, and the lighting keeps updating.
 - Recent global clouds from the latest daylight satellite pass, drawn a little above the surface so they cast a soft shadow.
 - A specular glint on the oceans, and a small moon lit by the same sun.
-- Local time, whether it is day, twilight, or night, the sun’s elevation, when the clouds were fetched, and the imagery credits.
+- Local time, whether it is day, twilight, or night, and the sun’s elevation.
 
 Drag to look around. Scroll or pinch to move between 1,500 km and 5,000 km. Recenter returns to the first fix.
 

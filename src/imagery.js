@@ -26,8 +26,11 @@ const CLOUD_SOURCES = [
 
 function detailLevel(maxTextureSize) {
   const width = window.innerWidth || 1200;
-  const memory = navigator.deviceMemory || 4;
-  let level = width >= 1100 && memory >= 4 ? 3 : 2;
+  // Safari does not expose deviceMemory; assume a capable desktop there.
+  const memory = navigator.deviceMemory || (width >= 1100 ? 8 : 4);
+  let level = 2;
+  if (width >= 700 && memory >= 4) level = 3;
+  if (width >= 1100 && memory >= 8) level = 4;
   const limit = maxTextureSize || 4096;
   while (level > 0 && worldSize(level).width > limit) level -= 1;
   return level;
@@ -55,13 +58,16 @@ async function loadOne(spec, level) {
   }
 }
 
-async function loadSurfaces(globe, level, status) {
+async function loadSurfaces(globe, level, status, { water: withWater = true } = {}) {
   const day = await loadOne(DAY, level);
   if (!day) throw new Error(`Day imagery failed at level ${level}`);
   globe.setTexture('day', day.canvas);
   status.dayCanvases.set(level, day.canvas);
   status.dayLevel = Math.max(status.dayLevel, level);
-  const [night, water] = await Promise.all([loadOne(NIGHT, level), loadOne(WATER, level)]);
+  const [night, water] = await Promise.all([
+    loadOne(NIGHT, level),
+    withWater ? loadOne(WATER, level) : null,
+  ]);
   if (night) globe.setTexture('night', night.canvas);
   if (water) globe.setTexture('water', water.canvas);
 }
@@ -97,7 +103,9 @@ async function useStaticClouds(globe, status) {
 }
 
 async function loadCloudDeck(globe, level, status, { force = false } = {}) {
-  const jobs = await discoverCloudJobs(force);
+  const allJobs = await discoverCloudJobs(force);
+  // High-res mosaics are hundreds of tiles each; the newest two passes cover the globe.
+  const jobs = level >= 2 ? allJobs.slice(0, 2) : allJobs;
   const key = jobs.map((job) => `${job.layer}@${job.date}`).join('|');
   if (!jobs.length) {
     await useStaticClouds(globe, status);
@@ -112,16 +120,16 @@ async function loadCloudDeck(globe, level, status, { force = false } = {}) {
   const frames = [];
   const dates = [];
   const labels = [];
-  for (const job of jobs) {
-    const mosaic = await loadOne(
-      { layer: job.layer, matrix: '250m', date: job.date, ext: 'jpg' },
-      level,
-    );
-    if (!mosaic) continue;
+  const mosaics = await Promise.all(
+    jobs.map((job) => loadOne({ layer: job.layer, matrix: '250m', date: job.date, ext: 'jpg' }, level)),
+  );
+  jobs.forEach((job, index) => {
+    const mosaic = mosaics[index];
+    if (!mosaic) return;
     frames.push(mosaic.canvas);
     dates.push(job.date);
     if (!labels.includes(job.label)) labels.push(job.label);
-  }
+  });
   if (!frames.length) {
     await useStaticClouds(globe, status);
     return;
@@ -154,7 +162,7 @@ export function beginImagery(globe, hooks = {}) {
     dayCanvases: new Map(),
   };
   const detail = detailLevel(globe.renderer.capabilities.maxTextureSize);
-  const cloudLevel = Math.min(2, detail);
+  const cloudLevel = Math.min(3, detail);
   const publish = () => hooks.onStatus?.(snapshot(status));
 
   const task = (async () => {
@@ -166,22 +174,39 @@ export function beginImagery(globe, hooks = {}) {
       loadCloudDeck(globe, 0, status).then(publish),
       loadSurfaces(globe, 2, status).then(() => {
         publish();
-        hooks.onProgress?.(0.72);
+        hooks.onProgress?.(0.6);
       }),
     ]);
-    try {
-      await loadCloudDeck(globe, cloudLevel, status);
-    } catch {
-      await useStaticClouds(globe, status);
-    }
-    publish();
-    hooks.onProgress?.(1);
+    // A medium cloud deck arrives quickly while sharper surfaces download.
+    const mediumClouds = loadCloudDeck(globe, 2, status)
+      .then(publish)
+      .catch(() => {});
     if (detail >= 3) {
       try {
         await loadSurfaces(globe, 3, status);
         publish();
       } catch {
         // Level 2 day imagery stays on screen.
+      }
+    }
+    await mediumClouds;
+    hooks.onProgress?.(0.8);
+    // Clouds are masked against day imagery at the same level.
+    const deckLevel = status.dayCanvases.has(cloudLevel) ? cloudLevel : 2;
+    try {
+      await loadCloudDeck(globe, deckLevel, status);
+    } catch {
+      await useStaticClouds(globe, status);
+    }
+    publish();
+    hooks.onProgress?.(1);
+    if (detail >= 4) {
+      try {
+        // The water mask only drives the ocean glint, so level 3 is plenty.
+        await loadSurfaces(globe, 4, status, { water: false });
+        publish();
+      } catch {
+        // Level 3 day imagery stays on screen.
       }
     }
     return snapshot(status);

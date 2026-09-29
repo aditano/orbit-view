@@ -32,9 +32,9 @@ export function xyzToLatLon(x, y, z) {
 }
 
 /** Vertical FOV that fits the planetary disc in the shorter screen axis. */
-export function fovForDisc(distance, aspect, fill = 0.96) {
-  const safeDistance = Math.max(distance, 1.02);
-  const limb = Math.asin(Math.min(0.995, 1 / safeDistance));
+export function fovForDisc(distance, aspect, fill = 0.96, shell = 1) {
+  const safeDistance = Math.max(distance, shell * 1.02);
+  const limb = Math.asin(Math.min(0.995, shell / safeDistance));
   const needed = (2 * limb) / fill;
   const vertical =
     aspect >= 1 ? needed : 2 * Math.atan(Math.tan(needed / 2) / Math.max(aspect, 0.2));

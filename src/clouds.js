@@ -48,11 +48,11 @@ function blurAxis(src, width, height, radius, horizontal) {
 }
 
 /**
- * VIIRS granules are full of thin scan streaks. A wide blur turns that mask
- * into a soft cloud deck instead of a field of hard rectangles.
+ * A light blur removes single-pixel scan streaks and JPEG noise while keeping
+ * the fine cloud texture that high-resolution VIIRS imagery carries.
  */
 export function cleanCloudAlpha(alpha, width, height) {
-  const radius = Math.max(2, Math.round(width / 200));
+  const radius = Math.max(1, Math.round(width / 2560));
   const horizontal = blurAxis(alpha, width, height, radius, true);
   return blurAxis(horizontal, width, height, radius, false);
 }
