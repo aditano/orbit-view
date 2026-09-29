@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="See your place on Earth from orbit, with a live day-night terminator and recent cloud cover."
+    />
+    <title>Orbit View</title>
+    <link rel="icon" href="%BASE_URL%favicon.svg" />
+  </head>
+  <body>
+    <canvas id="scene" aria-label="Earth from orbit"></canvas>
+    <div id="vignette" aria-hidden="true"></div>
+    <div id="progress" aria-hidden="true"></div>
+    <header id="start">
+      <h1 class="mark">Orbit</h1>
+      <p class="tagline">Your place, from space</p>
+      <button id="start-btn" type="button"><span>Start</span></button>
+      <p id="status" role="status" aria-live="polite"></p>
+    </header>
+    <aside id="hud" aria-hidden="true">
+      <section class="panel place-panel">
+        <p id="hud-time" class="time"></p>
+        <p id="hud-sun" class="sun"></p>
+        <p id="hud-name" class="name"></p>
+        <p id="hud-coords" class="coords"></p>
+        <p id="hud-fix" class="fix"></p>
+      </section>
+      <section class="panel credits">
+        <p id="hud-clouds"></p>
+        <p id="hud-updated" class="muted"></p>
+        <p id="hud-credits" class="muted"></p>
+      </section>
+    </aside>
+    <div id="pin-label" hidden></div>
+    <button id="recenter" type="button" hidden>Recenter</button>
+    <noscript><p class="noscript">Orbit View needs JavaScript to draw the Earth.</p></noscript>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
