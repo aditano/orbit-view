@@ -57,3 +57,17 @@ Blue Marble, Black Marble, and the GIBS layers are NASA imagery. three.js draws 
 ## Pages
 
 Pushes to `main` build and deploy with GitHub Actions (`.github/workflows/pages.yml`). In the repository’s Pages settings, the source has to be GitHub Actions. The build already passes; the deploy publishes once that source is selected.
+
+## License
+
+Copyright 2026 Anthony DiTano.
+
+Orbit View is free software. You can redistribute it and modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. The full text is in [LICENSE](LICENSE).
+
+Third-party assets, data, and imagery keep their own licenses:
+
+- `public/textures/clouds-fallback.jpg` is the public-domain [NASA Visible Earth cloud composite](https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57747/cloud_combined_2048.jpg).
+- Day, night, ocean, and live cloud layers are NASA GIBS imagery (Blue Marble, Black Marble, the MODIS water mask, and VIIRS corrected reflectance). That imagery stays under the [NASA image use guidelines](https://www.nasa.gov/nasa-brand-center/images-and-media/). Acknowledge NASA as the source.
+- The screenshots in `docs/` include that NASA imagery.
+- Location and time data come from [geojs](https://www.geojs.io/), [BigDataCloud](https://www.bigdatacloud.com/), and [timeapi.io](https://timeapi.io/) under those services' own terms.
+- three.js, which draws the globe, remains under the MIT License.
