@@ -333,6 +333,7 @@ export class Globe {
     this.sun = new THREE.Vector3(1, 0, 0);
     this.aniso = Math.min(16, this.renderer.capabilities.getMaxAnisotropy());
     this.mixTarget = { dayMix: 0, nightMix: 0, waterMix: 0, cloudMix: 0 };
+    this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this._normal = new THREE.Vector3();
     this._toCamera = new THREE.Vector3();
     this._projected = new THREE.Vector3();
@@ -517,9 +518,14 @@ export class Globe {
       if (this.cloudMat.uniforms[key]) this.cloudMat.uniforms[key].value = uniform.value;
     }
     if (this.pin.visible) {
-      const scale = 1 + 0.16 * Math.sin(timeMs * 0.0022);
-      this.halo.scale.setScalar(scale);
-      this.halo.material.opacity = 0.28 + 0.18 * (0.5 + 0.5 * Math.sin(timeMs * 0.0022));
+      if (this.reduceMotion) {
+        this.halo.scale.setScalar(1);
+        this.halo.material.opacity = 0.42;
+      } else {
+        const scale = 1 + 0.16 * Math.sin(timeMs * 0.0022);
+        this.halo.scale.setScalar(scale);
+        this.halo.material.opacity = 0.28 + 0.18 * (0.5 + 0.5 * Math.sin(timeMs * 0.0022));
+      }
     }
     this.renderer.render(this.scene, this.camera);
   }
