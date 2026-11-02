@@ -75,6 +75,13 @@ body {
 
 #start.is-hidden {
   opacity: 0;
+  visibility: hidden;
+  /* Keep the fade; drop hit-testing and a11y exposure once hidden. */
+  transition: opacity 0.7s ease, visibility 0s linear 0.7s;
+}
+
+#start.is-hidden #start-btn {
+  pointer-events: none;
 }
 
 .mark {

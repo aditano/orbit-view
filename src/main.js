@@ -119,6 +119,9 @@ function setStatus(text) {
 function hideStart() {
   startEl.classList.add('is-hidden');
   startEl.setAttribute('aria-hidden', 'true');
+  startEl.inert = true;
+  startButton.disabled = true;
+  startButton.tabIndex = -1;
 }
 
 function showHud() {
