@@ -119,6 +119,9 @@ function setStatus(text) {
 function hideStart() {
   startEl.classList.add('is-hidden');
   startEl.setAttribute('aria-hidden', 'true');
+  startEl.inert = true;
+  startButton.disabled = true;
+  startButton.tabIndex = -1;
 }
 
 function showHud() {
@@ -267,11 +270,21 @@ async function begin() {
 function onPointerDown(event) {
   pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
   canvas.setPointerCapture?.(event.pointerId);
+  // A second finger must not start a fresh tap target; treat the gesture as multi-touch.
+  if (pointers.size > 1) {
+    if (drag) {
+      drag.multi = true;
+      drag.moved = true;
+      drag.pinch = null;
+    }
+    return;
+  }
   drag = {
     id: event.pointerId,
     x: event.clientX,
     y: event.clientY,
     moved: false,
+    multi: false,
     pinch: null,
   };
 }
@@ -285,6 +298,7 @@ function onPointerMove(event) {
     const distance = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
     if (drag.pinch) state.radius = clamp(state.radius * (drag.pinch / distance), closeRadius, farRadius);
     drag.pinch = distance;
+    drag.multi = true;
     drag.moved = true;
     return;
   }
@@ -302,8 +316,10 @@ function onPointerMove(event) {
 function onPointerUp(event) {
   const info = drag;
   pointers.delete(event.pointerId);
-  if (pointers.size === 0) drag = null;
-  if (!info || info.moved || !globe) return;
+  const remaining = pointers.size;
+  if (remaining === 0) drag = null;
+  // Only a clean one-finger tap (no move, no multi-touch) may pick a place.
+  if (!info || info.moved || info.multi || remaining > 0 || !globe) return;
   if (state.mode === 'intro' && !state.choosing) return;
   if (state.mode === 'flying') return;
   const hit = globe.pick(event.clientX, event.clientY, window.innerWidth, window.innerHeight);
